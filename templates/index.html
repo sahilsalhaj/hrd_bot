@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRD Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+</head>
+<body class="bg-gray-900 flex items-center justify-center h-screen">
+    <div class="w-full max-w-lg bg-gray-800 text-white rounded-lg shadow-lg p-4 flex flex-col h-[80vh]">
+        <h2 class="text-xl font-semibold text-gray-200 text-center mb-2">HRD Chatbot</h2>
+        <div id="chat-box" class="flex-1 overflow-y-auto p-2 space-y-2 bg-gray-700 rounded-lg">
+            <!-- Chat messages appear here -->
+        </div>
+        <div class="flex items-center mt-3 border-t border-gray-600 pt-2">
+            <input type="text" id="user-input" class="flex-1 px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Type a message...">
+            <button onclick="sendMessage()" class="ml-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Send</button>
+        </div>
+    </div>
+
+    <script>
+        function sendMessage() {
+            let userInput = document.getElementById("user-input").value.trim();
+            if (!userInput) return;
+
+            let chatBox = document.getElementById("chat-box");
+
+            // Append user message
+            chatBox.innerHTML += `<div class='self-end bg-blue-500 text-white p-2 rounded-lg w-fit max-w-xs ml-auto'>${userInput}</div>`;
+
+            // Clear input field
+            document.getElementById("user-input").value = "";
+
+            // Fetch response
+            fetch("/query", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ question: userInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Format response using Markdown
+                let formattedResponse = marked.parse(data.response);
+
+                // Append bot message with formatted text
+                chatBox.innerHTML += `<div class='self-start bg-gray-600 p-2 rounded-lg w-fit max-w-xs'><div class='prose prose-invert'>${formattedResponse}</div></div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            })
+            .catch(error => console.error("Error:", error));
+        }
+    </script>
+</body>
+</html>
